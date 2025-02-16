@@ -1,5 +1,5 @@
 import * as viem from 'viem'
-import IERC7412 from '../out/IERC7412.sol/IERC7412.json'
+import IERC7412 from '../out/IERC7412.sol/IERC7412.0.8.27.json'
 import { type OracleAdapter } from './types'
 import { parseError } from './parseError'
 
@@ -32,7 +32,7 @@ export function makeTrustedForwarderMulticall(transactions: TransactionRequest[]
       functionName: 'aggregate3Value',
       args: [
         transactions.map((txn) => ({
-          target: txn.to ?? viem.zeroAddress,
+          target: txn.to,
           callData: txn.data ?? '0x',
           value: txn.value ?? '0',
           requireSuccess: true

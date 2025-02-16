@@ -30,7 +30,8 @@ const provider = new ethers.providers.JsonRpcProvider(
 
   // request price with very strict window to ensure we go through the api
   const data = contract.interface.encodeFunctionData('getLatestPrice', [
-    '0x000359843a543ee2fe414dc14c7e7920ef10f4372990b79d6361cdc0dd1ba782',
+    process.env.CHAINLINK_DS_ID ||
+      '0x00037da06d56d083fe599397a4769a042d63aa73dc4ef57709d31e9971a5b439',
     60
   ])
 
