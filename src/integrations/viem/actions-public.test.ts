@@ -9,7 +9,8 @@ import {
 
 import * as mod from './actions-public'
 
-import { callWithOffchainData, resolvePrependTransaction } from '../..'
+import { simulateWithOffchainData } from '../../read'
+import { resolvePrependTransaction } from '../../txn'
 
 jest.mock('../..')
 jest.mock('viem/actions')
@@ -87,10 +88,12 @@ describe('integrations/viem/actions-public', () => {
 
     describe('call()', () => {
       it('should pass through a single transaction', async () => {
-        jest.mocked(callWithOffchainData).mockResolvedValue(['0x83838'])
+        jest
+          .mocked(simulateWithOffchainData)
+          .mockResolvedValue({ results: [{ data: '0x83838', gasUsed: 100000n, result: '', status: 'success' }], txns: [] })
         const result = await actions.call(fakeTxn)
         expect(result).toEqual({ data: '0x83838' })
-        expect(jest.mocked(callWithOffchainData).mock.calls[0][0]).toEqual([{ from: viem.zeroAddress, ...fakeTxn }])
+        expect(jest.mocked(simulateWithOffchainData).mock.calls[0][0]).toEqual([{ from: viem.zeroAddress, ...fakeTxn }])
       })
     })
 
@@ -99,13 +102,30 @@ describe('integrations/viem/actions-public', () => {
         await expect(actions.multicall({ contracts: [] })).rejects.toThrowErrorMatchingSnapshot()
       })
       it('should pass through a set of transactions without erc7412', async () => {
-        jest.mocked(callWithOffchainData).mockResolvedValue(['0xfac', '0xcaf'])
-        jest
-          .mocked(callWithOffchainData)
-          .mockResolvedValue([
-            '0x0000000000000000000000000000000000000000000000000000000000000010',
-            '0x0000000000000000000000000000000000000000000000000000000000000009'
-          ])
+        jest.mocked(simulateWithOffchainData).mockResolvedValue({
+          results: [
+            { data: '0xfac', gasUsed: 100000n, result: '', status: 'success' },
+            { data: '0xcaf', gasUsed: 100000n, result: '', status: 'success' }
+          ],
+          txns: []
+        })
+        jest.mocked(simulateWithOffchainData).mockResolvedValue({
+          results: [
+            {
+              data: '0x0000000000000000000000000000000000000000000000000000000000000010',
+              gasUsed: 100000n,
+              result: '',
+              status: 'success'
+            },
+            {
+              data: '0x0000000000000000000000000000000000000000000000000000000000000009',
+              gasUsed: 100000n,
+              result: '',
+              status: 'success'
+            }
+          ],
+          txns: []
+        })
         const result = await actions.multicall({ contracts: [fakeContractRequest, fakeContractRequest] })
 
         // result will only return one object because thats what is returned by the mock, but normally there would be 2
@@ -115,25 +135,33 @@ describe('integrations/viem/actions-public', () => {
         ])
 
         // however, the mock should have been called with 2 items
-        expect(jest.mocked(callWithOffchainData).mock.calls[0][0][0]).toMatchObject({
+        expect(jest.mocked(simulateWithOffchainData).mock.calls[0][2][0]).toMatchObject({
           data: viem.encodeFunctionData(fakeContractRequest)
         })
-        expect(jest.mocked(callWithOffchainData).mock.calls[0][0][1]).toMatchObject({
+        expect(jest.mocked(simulateWithOffchainData).mock.calls[0][2][1]).toMatchObject({
           data: viem.encodeFunctionData(fakeContractRequest)
         })
-        expect(jest.mocked(callWithOffchainData).mock.calls[0][1]).toMatchObject(mockPublicClient)
-        expect(jest.mocked(callWithOffchainData).mock.calls[0][2]).toMatchObject(fakeAdapters)
+        expect(jest.mocked(simulateWithOffchainData).mock.calls[0][1]).toMatchObject(mockPublicClient)
+        expect(jest.mocked(simulateWithOffchainData).mock.calls[0][2]).toMatchObject(fakeAdapters)
       })
     })
 
     describe('readContract()', () => {
       it('should pass through a single transaction', async () => {
-        jest
-          .mocked(callWithOffchainData)
-          .mockResolvedValue(['0x0000000000000000000000000000000000000000000000000000000000000009'])
+        jest.mocked(simulateWithOffchainData).mockResolvedValue({
+          results: [
+            {
+              data: '0x0000000000000000000000000000000000000000000000000000000000000009',
+              gasUsed: 100000n,
+              result: '',
+              status: 'success'
+            }
+          ],
+          txns: []
+        })
         const result = await actions.readContract(fakeContractRequest)
         expect(result).toEqual({ data: 9 })
-        expect(jest.mocked(callWithOffchainData).mock.calls[0][0][0]).toMatchObject({
+        expect(jest.mocked(simulateWithOffchainData).mock.calls[0][2][0]).toMatchObject({
           data: viem.encodeFunctionData(fakeContractRequest)
         })
       })
@@ -141,9 +169,17 @@ describe('integrations/viem/actions-public', () => {
 
     describe('simulateContract()', () => {
       it('should pass through a single transaction', async () => {
-        jest
-          .mocked(callWithOffchainData)
-          .mockResolvedValue(['0x0000000000000000000000000000000000000000000000000000000000000009'])
+        jest.mocked(simulateWithOffchainData).mockResolvedValue({
+          results: [
+            {
+              data: '0x0000000000000000000000000000000000000000000000000000000000000009',
+              gasUsed: 100000n,
+              result: '',
+              status: 'success'
+            }
+          ],
+          txns: []
+        })
 
         // for the prepare call just return exactly what we are given
         jest.mocked(actionPrepareTransactionRequest).mockImplementation(async (c, v) => {
@@ -152,7 +188,7 @@ describe('integrations/viem/actions-public', () => {
 
         const result = await actions.simulateContract(fakeContractRequest)
         expect(result).toMatchObject({ result: 9 })
-        expect(jest.mocked(callWithOffchainData).mock.calls[0][0][0]).toMatchObject({
+        expect(jest.mocked(simulateWithOffchainData).mock.calls[0][2][0]).toMatchObject({
           data: viem.encodeFunctionData(fakeContractRequest)
         })
       })

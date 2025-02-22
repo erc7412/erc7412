@@ -1,4 +1,4 @@
-import * as mod from './'
+import * as mod from './txn'
 
 import * as viem from 'viem'
 
@@ -20,7 +20,7 @@ export const fakeAdapters: OracleAdapter[] = [
   }
 ]
 
-describe('index.ts', () => {
+describe('txn.ts', () => {
   let errorCode: viem.Hex = '0x1234'
   beforeEach(() => {
     errorCode = '0x1234'
@@ -58,74 +58,6 @@ describe('index.ts', () => {
       } else {
         return '0x'
       }
-    })
-  })
-
-  describe('makeTrustedForwarderMulticall()', () => {
-    it('works even if data and value are unset', async () => {
-      expect(mod.makeTrustedForwarderMulticall([{ from: viem.zeroAddress }])).toMatchSnapshot()
-    })
-  })
-
-  describe('callWithOffchainData()', () => {
-    it('passes a call execution error if its not recognized', async () => {
-      const origError = new Error('0x08273020')
-      fakeWeb3.request.mockRejectedValue(origError)
-      await expect(
-        async () =>
-          await mod.callWithOffchainData(
-            [{ from: '0x', to: '0x1234123412341234123412341234123412341234', data: '0x12345678' }],
-            fakeWeb3,
-            fakeAdapters
-          )
-      ).rejects.toThrowErrorMatchingSnapshot()
-    })
-
-    it('resolves offchain data and returns correct data', async () => {
-      expect(
-        await mod.callWithOffchainData(
-          [
-            { from: '0x', to: '0x1234123412341234123412341234123412341234', data: '0x12345678' },
-            { from: '0x', to: '0x1234123412341234123412341234123412341234', data: '0x23456789' }
-          ],
-          fakeWeb3,
-          fakeAdapters
-        )
-      ).toMatchObject([
-        { returnData: '0x1234', success: true },
-        { returnData: '0x5678', success: true }
-      ])
-    })
-
-    it('fails if call repeat exceeded', async () => {
-      // modify the error code so that the OracleDataRequired error continues forever.
-      errorCode = '0x5757'
-
-      await expect(
-        mod.callWithOffchainData(
-          [
-            { from: '0x', to: '0x1234123412341234123412341234123412341234', data: '0x12345678' },
-            { from: '0x', to: '0x1234123412341234123412341234123412341234', data: '0x23456789' }
-          ],
-          fakeWeb3,
-          fakeAdapters
-        )
-      ).rejects.toThrow(new Error('erc7412 callback repeat exceeded'))
-    })
-
-    it('fails if no data in call response', async () => {
-      fakeWeb3.request.mockResolvedValue(undefined)
-
-      await expect(
-        mod.callWithOffchainData(
-          [
-            { from: '0x', to: '0x1234123412341234123412341234123412341234', data: '0x12345678' },
-            { from: '0x', to: '0x1234123412341234123412341234123412341234', data: '0x23456789' }
-          ],
-          fakeWeb3,
-          fakeAdapters
-        )
-      ).rejects.toThrow(new Error('missing return data from multicall'))
     })
   })
 

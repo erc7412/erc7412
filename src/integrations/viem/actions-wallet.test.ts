@@ -2,14 +2,12 @@ import * as viem from 'viem'
 import type { PublicClient } from 'viem'
 import type { OracleAdapter } from '../../types'
 
-import {
-  prepareTransactionRequest as actionPrepareTransactionRequest,
-  estimateContractGas as actionEstimateContractGas
-} from 'viem/actions'
+import { prepareTransactionRequest as actionPrepareTransactionRequest } from 'viem/actions'
 
 import * as mod from './actions-wallet'
 
-import { callWithOffchainData, resolvePrependTransaction } from '../..'
+import { simulateWithOffchainData } from '../../read'
+import { resolvePrependTransaction } from '../../txn'
 
 jest.mock('../..')
 jest.mock('viem/actions')
@@ -123,13 +121,21 @@ describe('integrations/viem/actions-wallet', () => {
           return v
         })
 
-        jest
-          .mocked(callWithOffchainData)
-          .mockResolvedValue(['0x0000000000000000000000000000000000000000000000000000000000000009'])
+        jest.mocked(simulateWithOffchainData).mockResolvedValue({
+          results: [
+            {
+              data: '0x0000000000000000000000000000000000000000000000000000000000000009',
+              gasUsed: 100000n,
+              result: '',
+              status: 'success'
+            }
+          ],
+          txns: []
+        })
 
         const result = await actions.simulateContract(fakeContractRequest)
         expect(result).toMatchObject({ result: 9 })
-        expect(jest.mocked(callWithOffchainData).mock.calls[0][0][0]).toMatchObject({
+        expect(jest.mocked(simulateWithOffchainData).mock.calls[0][2][0]).toMatchObject({
           data: viem.encodeFunctionData(fakeContractRequest)
         })
       })
@@ -142,9 +148,17 @@ describe('integrations/viem/actions-wallet', () => {
       it('should handle erc7412 error', async () => {
         jest.mocked(actionPrepareTransactionRequest).mockResolvedValue({ to: viem.zeroAddress, data: fakeMulticallData })
         jest.mocked(actionPrepareTransactionRequest).mockRejectedValueOnce(new Error('whoops'))
-        jest
-          .mocked(callWithOffchainData)
-          .mockResolvedValue(['0x0000000000000000000000000000000000000000000000000000000000000008'])
+        jest.mocked(simulateWithOffchainData).mockResolvedValue({
+          results: [
+            {
+              data: '0x0000000000000000000000000000000000000000000000000000000000000008',
+              gasUsed: 100000n,
+              result: '',
+              status: 'success'
+            }
+          ],
+          txns: []
+        })
 
         const result = await actions.simulateContract({
           abi: [

@@ -1,17 +1,21 @@
-import type * as viem from 'viem'
+import type { SimulateCallsParameters } from 'viem/actions'
+import type { PublicClient, Client, Address, Hex } from 'viem'
 
-export type TransactionRequest = Pick<viem.TransactionRequest, 'to' | 'data' | 'value' | 'from'>
+export type TransactionRequest<T extends unknown[]> = SimulateCallsParameters<T>['calls']
 
 export interface OracleAdapter {
   getOracleId: () => string
   fetchOffchainData: (
-    client: viem.Client,
-    oracleContract: viem.Address,
-    oracleQuery: Array<{ query: viem.Hex; fee: bigint }>
-  ) => Promise<Array<{ arg: viem.Hex; fee?: bigint }>>
+    client: Client,
+    oracleContract: Address,
+    oracleQuery: Array<{ query: Hex; fee: bigint }>
+  ) => Promise<Array<{ arg: Hex; fee?: bigint }>>
 }
 
-export interface Batcher {
-  batchable: (client: viem.PublicClient, transactions: TransactionRequest[]) => Promise<boolean>
-  batch: (transactions: TransactionRequest[]) => TransactionRequest
+export interface Batcher<T extends unknown[]> {
+  batchable: (client: PublicClient, from: Address, transactions: TransactionRequest<T>) => Promise<boolean>
+  batch: (
+    from: Address,
+    transactions: TransactionRequest<T>
+  ) => TransactionRequest<{ to: Address; data: Hex; value: bigint }[]>[0]
 }

@@ -1,6 +1,6 @@
 {
   "name": "erc7412",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "description": "Reference implementation for usage of EIP-7412",
   "main": "dist/src/index.js",
   "scripts": {
@@ -26,22 +26,23 @@
   },
   "homepage": "https://github.com/Synthetixio/erc7412#readme",
   "dependencies": {
-    "@usecannon/cli": "^2.17.0",
     "debug": "^4.3.7",
     "node-fetch": "^2.6.12",
     "typechain": "^8.3.1",
-    "viem": "^2.20.0"
+    "viem": "^2.23.2"
   },
   "peerDependencies": {
+    "@hackbg/chainlink-datastreams-consumer": "*",
     "@pythnetwork/pyth-evm-js": "^1.25.0",
-    "@pythnetwork/pyth-sdk-solidity": "^2.2.1",
-    "@hackbg/chainlink-datastreams-consumer": "git+https://github.com/hackbg/chainlink-datastreams-consumer.git"
+    "@pythnetwork/pyth-sdk-solidity": "^2.2.1"
   },
   "devDependencies": {
     "@types/debug": "^4.1.12",
     "@types/jest": "^29.5.12",
     "@types/node-fetch": "^2.6.4",
     "@typescript-eslint/eslint-plugin": "^6.16.0",
+    "@usecannon/cli": "^2.17.0",
+    "@hackbg/chainlink-datastreams-consumer": "git+https://github.com/hackbg/chainlink-datastreams-consumer.git",
     "eslint": "^8.56.0",
     "eslint-config-standard-with-typescript": "^43.0.0",
     "eslint-plugin-import": "^2.29.1",
@@ -53,5 +54,5 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   },
-  "packageManager": "yarn@3.5.1+sha512.8cd0e31bd60779ef4ca92b855fb3462c7ec35ce8b345752b7349a68239776417f46d41d79c8047242d9c93b48a1516f64c7444ebe747d9a02bf26868e6fa1f2b"
+  "packageManager": "pnpm@10.4.0+sha512.6b849d0787d97f8f4e1f03a9b8ff8f038e79e153d6f11ae539ae7c435ff9e796df6a862c991502695c7f9e8fac8aeafc1ac5a8dab47e36148d183832d886dd52"
 }

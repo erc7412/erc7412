@@ -1,0 +1,123 @@
+import * as mod from './write'
+
+import * as viem from 'viem'
+
+import IERC7412 from '../out/IERC7412.sol/IERC7412.0.8.27.json'
+
+import type { OracleAdapter } from './types'
+
+export const fakeWeb3 = {
+  request: jest.fn()
+}
+
+export const fakeAdapters: OracleAdapter[] = [
+  {
+    getOracleId: () => 'FAKE',
+    fetchOffchainData: async (_client, _oracleContract, oracleQuery: any[]) =>
+      oracleQuery.map((v) => ({ arg: ('0x8765' + v.query.slice(2)) as viem.Hex, fee: BigInt(100) }))
+  }
+]
+
+describe('write.ts', () => {
+  let errorCode: viem.Hex = '0x1234'
+  beforeEach(() => {
+    errorCode = '0x1234'
+    fakeWeb3.request.mockImplementation(async ({ method, params }: { method: string; params: any[] }) => {
+      if (method === 'eth_chainId') {
+        return BigInt(1337)
+      } else if (method === 'eth_call') {
+        if (params[0].data === viem.encodeFunctionData({ abi: IERC7412.abi, functionName: 'oracleId' })) {
+          // getOracleId call
+          return viem.encodeFunctionResult({
+            abi: IERC7412.abi,
+            functionName: 'oracleId',
+            result: viem.stringToHex('FAKE', { size: 32 })
+          })
+        } else if (params[0].data.includes('87651234') === true) {
+          return viem.encodeAbiParameters(
+            [viem.parseAbiParameter('(bool success, bytes returnData)[]')],
+            [
+              [
+                { success: true, returnData: '0x1234' },
+                { success: true, returnData: '0x5678' }
+              ]
+            ]
+          )
+        } else {
+          /* eslint @typescript-eslint/no-throw-literal: "off" */
+          throw {
+            data: viem.encodeErrorResult({
+              abi: IERC7412.abi,
+              errorName: 'OracleDataRequired',
+              args: ['0x2345234523452345234523452345234523452345', errorCode, BigInt(0)]
+            })
+          }
+        }
+      } else {
+        return '0x'
+      }
+    })
+  })
+
+  describe('execWithOffchainData()', () => {
+    it('passes a call execution error if its not recognized', async () => {
+      const origError = new Error('0x08273020')
+      fakeWeb3.request.mockRejectedValue(origError)
+      await expect(
+        async () =>
+          await mod.buildTransactionWithOffchainData(
+            [{ to: '0x1234123412341234123412341234123412341234', data: '0x12345678' }],
+            fakeWeb3,
+            fakeAdapters
+          )
+      ).rejects.toThrowErrorMatchingSnapshot()
+    })
+
+    it('resolves offchain data and returns correct data', async () => {
+      expect(
+        await mod.buildTransactionWithOffchainData(
+          [
+            { to: '0x1234123412341234123412341234123412341234', data: '0x12345678' },
+            { to: '0x1234123412341234123412341234123412341234', data: '0x23456789' }
+          ],
+          fakeWeb3,
+          fakeAdapters
+        )
+      ).toMatchObject([
+        { returnData: '0x1234', success: true },
+        { returnData: '0x5678', success: true }
+      ])
+    })
+
+    it('fails if call repeat exceeded', async () => {
+      // modify the error code so that the OracleDataRequired error continues forever.
+      errorCode = '0x5757'
+
+      await expect(
+        mod.buildTransactionWithOffchainData(
+          [
+            { to: '0x1234123412341234123412341234123412341234', data: '0x12345678' },
+            { to: '0x1234123412341234123412341234123412341234', data: '0x23456789' }
+          ],
+          fakeWeb3,
+          fakeAdapters
+        )
+      ).rejects.toThrow(new Error('erc7412 callback repeat exceeded'))
+    })
+
+    it('fails if no data in call response', async () => {
+      fakeWeb3.request.mockResolvedValue(undefined)
+
+      await expect(
+        mod.buildTransactionWithOffchainData(
+          [
+            { to: '0x1234123412341234123412341234123412341234', data: '0x12345678' },
+            { to: '0x1234123412341234123412341234123412341234', data: '0x23456789' }
+          ],
+          fakeWeb3,
+          fakeAdapters
+        )
+      ).rejects.toThrow(new Error('missing return data from multicall'))
+    })
+  })
+})

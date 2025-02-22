@@ -4,7 +4,7 @@ import { estimateContractGas as actionEstimateContractGas } from 'viem/actions'
 
 import { createErc7412WalletActions } from './actions-wallet'
 
-import { callWithOffchainData } from '../..'
+import { simulateWithOffchainData } from '../../read'
 import type { OracleAdapter } from '../../types'
 
 export function getAccount(account: `0x${string}` | viem.Account | undefined): `0x${string}` {
@@ -28,17 +28,15 @@ export function createErc7412PublicActions(adapters: OracleAdapter[]) {
       call: async (args: viem.CallParameters): Promise<viem.CallReturnType> => {
         return {
           data: (
-            await callWithOffchainData(
-              [
-                {
-                  from: getAccount(args.account),
-                  ...args
-                }
-              ],
-              client,
-              adapters
-            )
-          )[0]
+            await simulateWithOffchainData(client, adapters, [
+              {
+                //from: getAccount(args.account),
+                to: args.to || viem.zeroAddress,
+                data: args.data || '0x',
+                value: args.value || BigInt(0)
+              }
+            ])
+          ).results[0].data
         }
       },
       readContract: async (args: viem.ReadContractParameters): Promise<viem.ReadContractReturnType> => {
@@ -46,18 +44,14 @@ export function createErc7412PublicActions(adapters: OracleAdapter[]) {
           data: viem.decodeFunctionResult({
             ...args,
             data: (
-              await callWithOffchainData(
-                [
-                  {
-                    from: getAccount(args.account),
-                    data: viem.encodeFunctionData(args),
-                    ...args
-                  }
-                ],
-                client,
-                adapters
-              )
-            )[0]
+              await simulateWithOffchainData(client, adapters, [
+                {
+                  data: viem.encodeFunctionData(args),
+                  to: args.address || viem.zeroAddress,
+                  value: BigInt(0)
+                }
+              ])
+            ).results[0].data
           })
         }
       },
@@ -82,21 +76,22 @@ export function createErc7412PublicActions(adapters: OracleAdapter[]) {
           throw new Error('must have at least one call for multicall')
         }
 
-        const retvals = await callWithOffchainData(
+        const retvals = await simulateWithOffchainData(
           // todo: types have a problem with the fact it cannot verify that the array is at least 1 long
+          client,
+          adapters,
           args.contracts.map((c) => {
             return {
-              from: c.address,
+              //from: c.address,
               data: viem.encodeFunctionData(c),
-              ...c
+              to: c.address,
+              value: BigInt(0)
             }
-          }) as unknown as [viem.TransactionRequest],
-          client,
-          adapters
+          })
         )
 
-        return retvals.map((r, i) => {
-          return { result: viem.decodeFunctionResult({ ...args.contracts[i], data: r }), status: 'success' }
+        return retvals.results.map((r, i) => {
+          return { result: viem.decodeFunctionResult({ ...args.contracts[i], data: r.data }), status: 'success' }
         })
       }
       // below functions are not included because they are not applicable
