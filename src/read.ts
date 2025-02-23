@@ -34,7 +34,7 @@ export async function simulateWithOffchainData<T extends unknown[]>(
 
     if (!batchNewTxs.length) {
       return {
-        results: simulatedCalls.results.slice(-transactions.length).map((r: any) => r.result) as any,
+        results: simulatedCalls.results.slice(-transactions.length).map((r: any) => r.data) as any,
         txns: [...prependedTxns, ...transactions]
       }
     }

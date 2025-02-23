@@ -5,6 +5,9 @@ export function parseError(error: any): viem.Hex {
     if (viem.isHex(error)) {
       return error
     }
+    if (viem.isHex(error.raw)) {
+      return error.raw
+    }
     if (viem.isHex(error.data)) {
       return error.data
     }

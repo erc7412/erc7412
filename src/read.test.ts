@@ -32,22 +32,12 @@ describe('read.ts', () => {
             {
               baseFeePerGas: '0x0',
               blobGasUsed: '0x0',
-              calls: [
-                {
-                  returnData: viem.encodeAbiParameters(
-                    [viem.parseAbiParameter('(bool success, bytes returnData)[]')],
-                    [
-                      [
-                        { success: true, returnData: '0x1234' },
-                        { success: true, returnData: '0x5678' }
-                      ]
-                    ]
-                  ),
-                  logs: [],
-                  gasUsed: '0x55b3',
-                  status: '0x1'
-                }
-              ],
+              calls: params[0].blockStateCalls[0].calls.map((d: any) => ({
+                returnData: d.data?.slice(0, 6) || '0x',
+                logs: [],
+                gasUsed: '0x55b3',
+                status: '0x1'
+              })),
               difficulty: '0x0',
               excessBlobGas: '0x3220000',
               extraData: '0x',
@@ -180,10 +170,26 @@ describe('read.ts', () => {
           { to: '0x1234123412341234123412341234123412341234', data: '0x12345678' },
           { to: '0x1234123412341234123412341234123412341234', data: '0x23456789' }
         ])
-      ).toMatchObject([
-        { returnData: '0x1234', success: true },
-        { returnData: '0x5678', success: true }
-      ])
+      ).toMatchObject({
+        // the data that we were supposed to get
+        results: ['0x1234', '0x2345'],
+        txns: [
+          // 2 price resolve transactions are added to the beginning the txns
+          {
+            data: '0x14b95956000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000048765123400000000000000000000000000000000000000000000000000000000',
+            to: '0x2345234523452345234523452345234523452345',
+            value: 100n
+          },
+          {
+            data: '0x14b95956000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000048765123400000000000000000000000000000000000000000000000000000000',
+            to: '0x2345234523452345234523452345234523452345',
+            value: 100n
+          },
+          // and then we have the actual txns we tried to execute
+          { data: '0x12345678', to: '0x1234123412341234123412341234123412341234' },
+          { data: '0x23456789', to: '0x1234123412341234123412341234123412341234' }
+        ]
+      })
     })
 
     it('fails if call repeat exceeded', async () => {
@@ -195,18 +201,7 @@ describe('read.ts', () => {
           { to: '0x1234123412341234123412341234123412341234', data: '0x12345678' },
           { to: '0x1234123412341234123412341234123412341234', data: '0x23456789' }
         ])
-      ).rejects.toThrow(new Error('erc7412 callback repeat exceeded'))
-    })
-
-    it('fails if no data in call response', async () => {
-      fakeWeb3.request.mockResolvedValue(undefined)
-
-      await expect(
-        mod.simulateWithOffchainData(fakeWeb3, fakeAdapters, [
-          { to: '0x1234123412341234123412341234123412341234', data: '0x12345678' },
-          { to: '0x1234123412341234123412341234123412341234', data: '0x23456789' }
-        ])
-      ).rejects.toThrow(new Error('missing return data from multicall'))
+      ).rejects.toThrow(new Error('erc7412 callback repeat limit exceeded'))
     })
   })
 })
