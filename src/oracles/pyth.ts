@@ -26,15 +26,15 @@ export class PythAdapter implements OracleAdapter {
     for (const query of oracleQuery) {
       const [updateType] = viem.decodeAbiParameters([{ name: 'updateType', type: 'uint8' }], query.query)
       if (updateType === 1) {
-        const [, stalenessOrTime, priceIds] = viem.decodeAbiParameters(
+        const [, stalenessOrTime, priceId] = viem.decodeAbiParameters(
           [
             { name: 'updateType', type: 'uint8' },
             { name: 'stalenessTolerance', type: 'uint64' },
-            { name: 'priceIds', type: 'bytes32[]' }
+            { name: 'priceIds', type: 'bytes32' }
           ],
           query.query
         )
-        stalePriceIds.push(...priceIds)
+        stalePriceIds.push(priceId)
         stalenessTolerance = stalenessOrTime < stalenessTolerance ? stalenessOrTime : stalenessTolerance
         staleUpdateFee = staleUpdateFee + (query.fee ?? BigInt(1))
       } else if (updateType === 2) {

@@ -6,7 +6,8 @@
   "scripts": {
     "build": "forge build && tsc",
     "test": "npx jest --workerThreads",
-    "test:e2e": "node ./test/pyth.mjs",
+    "test:e2e:pyth": "node ./test/pyth.mjs",
+    "test:e2e:chainlink": "node ./test/chainlink.mjs",
     "lint:fix": "eslint . --ext .ts --fix"
   },
   "repository": {
@@ -41,7 +42,8 @@
     "@types/jest": "^29.5.12",
     "@types/node-fetch": "^2.6.4",
     "@typescript-eslint/eslint-plugin": "^6.16.0",
-    "@usecannon/cli": "^2.17.0",
+    "@usecannon/builder": "^2.21.0",
+    "@usecannon/cli": "^2.21.0",
     "@hackbg/chainlink-datastreams-consumer": "git+https://github.com/hackbg/chainlink-datastreams-consumer.git",
     "eslint": "^8.56.0",
     "eslint-config-standard-with-typescript": "^43.0.0",
