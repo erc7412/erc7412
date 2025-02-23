@@ -9,7 +9,8 @@ import * as mod from './actions-wallet'
 import { simulateWithOffchainData } from '../../read'
 import { resolvePrependTransaction } from '../../txn'
 
-jest.mock('../..')
+jest.mock('../../read')
+jest.mock('../../txn')
 jest.mock('viem/actions')
 
 describe('integrations/viem/actions-wallet', () => {

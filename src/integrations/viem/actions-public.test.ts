@@ -12,7 +12,8 @@ import * as mod from './actions-public'
 import { simulateWithOffchainData } from '../../read'
 import { resolvePrependTransaction } from '../../txn'
 
-jest.mock('../..')
+jest.mock('../../read')
+jest.mock('../../txn')
 jest.mock('viem/actions')
 
 describe('integrations/viem/actions-public', () => {
@@ -93,7 +94,7 @@ describe('integrations/viem/actions-public', () => {
           .mockResolvedValue({ results: [{ data: '0x83838', gasUsed: 100000n, result: '', status: 'success' }], txns: [] })
         const result = await actions.call(fakeTxn)
         expect(result).toEqual({ data: '0x83838' })
-        expect(jest.mocked(simulateWithOffchainData).mock.calls[0][0]).toEqual([{ from: viem.zeroAddress, ...fakeTxn }])
+        expect(jest.mocked(simulateWithOffchainData).mock.calls[0][2]).toEqual([{ ...fakeTxn }])
       })
     })
 
@@ -141,8 +142,8 @@ describe('integrations/viem/actions-public', () => {
         expect(jest.mocked(simulateWithOffchainData).mock.calls[0][2][1]).toMatchObject({
           data: viem.encodeFunctionData(fakeContractRequest)
         })
-        expect(jest.mocked(simulateWithOffchainData).mock.calls[0][1]).toMatchObject(mockPublicClient)
-        expect(jest.mocked(simulateWithOffchainData).mock.calls[0][2]).toMatchObject(fakeAdapters)
+        expect(jest.mocked(simulateWithOffchainData).mock.calls[0][0]).toMatchObject(mockPublicClient)
+        expect(jest.mocked(simulateWithOffchainData).mock.calls[0][1]).toMatchObject(fakeAdapters)
       })
     })
 
