@@ -16,12 +16,11 @@ export async function simulateWithOffchainData<T extends unknown[]>(
 
   let prependedTxns: TransactionRequest<{ to: viem.Address; data: viem.Hex; value: bigint }[]> = []
   for (let i = 0; i < maxIter; i++) {
+      console.log('prepended', prependedTxns);
     const simulatedCalls = await client.simulateCalls<any>({
       account: from,
       calls: [...prependedTxns, ...transactions]
     })
-
-    console.log('simulated calls result', simulatedCalls)
 
     let batchNewTxs: typeof prependedTxns = []
     for (const result of simulatedCalls.results) {

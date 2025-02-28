@@ -45,14 +45,10 @@ export class ChainlinkAdapter implements OracleAdapter {
         feeds: staleFeedIds[t]
       })
 
-      console.log('feed results', feedResults)
-
       for (const r in feedResults) {
         reports.push(feedResults[r] as any)
       }
     }
-
-    console.log('got report', reports)
 
     return reports.map((r) => ({
       // TODO: fix type

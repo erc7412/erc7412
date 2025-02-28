@@ -28,8 +28,8 @@ importers:
         version: 2.23.2(typescript@5.7.3)(zod@3.24.2)
     devDependencies:
       '@hackbg/chainlink-datastreams-consumer':
-        specifier: git+https://github.com/hackbg/chainlink-datastreams-consumer.git
-        version: https://codeload.github.com/hackbg/chainlink-datastreams-consumer/tar.gz/30a54ea62aae6ebbc268f11b3cd06e1248496788
+        specifier: git+https://github.com/dbeal-eth/chainlink-datastreams-consumer.git
+        version: https://codeload.github.com/dbeal-eth/chainlink-datastreams-consumer/tar.gz/8bed5f1ae5dcddf46a2dbb3f3817eb874d61cd1a
       '@types/debug':
         specifier: ^4.1.12
         version: 4.1.12
@@ -374,8 +374,8 @@ packages:
   '@ethersproject/wordlists@5.7.0':
     resolution: {integrity: sha512-S2TFNJNfHWVHNE6cNDjbVlZ6MgE17MIxMbMg2zv3wn+3XSJGosL1m9ZVv3GXCf/2ymSsQ+hRI5IzoMJTG6aoVA==}
 
-  '@hackbg/chainlink-datastreams-consumer@https://codeload.github.com/hackbg/chainlink-datastreams-consumer/tar.gz/30a54ea62aae6ebbc268f11b3cd06e1248496788':
-    resolution: {tarball: https://codeload.github.com/hackbg/chainlink-datastreams-consumer/tar.gz/30a54ea62aae6ebbc268f11b3cd06e1248496788}
+  '@hackbg/chainlink-datastreams-consumer@https://codeload.github.com/dbeal-eth/chainlink-datastreams-consumer/tar.gz/8bed5f1ae5dcddf46a2dbb3f3817eb874d61cd1a':
+    resolution: {tarball: https://codeload.github.com/dbeal-eth/chainlink-datastreams-consumer/tar.gz/8bed5f1ae5dcddf46a2dbb3f3817eb874d61cd1a}
     version: 1.0.0-rc.1
 
   '@humanwhocodes/config-array@0.13.0':
@@ -2991,6 +2991,9 @@ packages:
   walker@1.0.8:
     resolution: {integrity: sha512-ts/8E8l5b7kY0vlWLewOkDXMmPdLcVV4GmOQLyxuSswIJsweeFZtAsMF7k1Nszz+TYBQrlYRmzOnr398y1JemQ==}
 
+  web-solc@0.5.1:
+    resolution: {integrity: sha512-Z/hBplZq1+4i4bYeIeD9N3vP1BLUBXpSDa4h0Ipm2Z2cHv7x7DtZ2zFb0E1L1VZo4BF+OJGVtGlT+nTUXGgncQ==}
+
   webidl-conversions@3.0.1:
     resolution: {integrity: sha512-2JAn3z8AR6rjK8Sm8orRC0h/bcl/DqL7tRPdGZ4I1CjdF+EaMLmYxBHyXuKL849eucPFhvBoxMsflfOb8kxaeQ==}
 
@@ -3618,7 +3621,7 @@ snapshots:
       '@ethersproject/properties': 5.7.0
       '@ethersproject/strings': 5.7.0
 
-  '@hackbg/chainlink-datastreams-consumer@https://codeload.github.com/hackbg/chainlink-datastreams-consumer/tar.gz/30a54ea62aae6ebbc268f11b3cd06e1248496788':
+  '@hackbg/chainlink-datastreams-consumer@https://codeload.github.com/dbeal-eth/chainlink-datastreams-consumer/tar.gz/8bed5f1ae5dcddf46a2dbb3f3817eb874d61cd1a':
     dependencies:
       '@noble/hashes': 1.7.1
       '@scure/base': 1.2.4
@@ -4194,7 +4197,9 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@usecannon/web-solc@0.5.1': {}
+  '@usecannon/web-solc@0.5.1':
+    dependencies:
+      web-solc: 0.5.1
 
   abitype@1.0.8(typescript@5.7.3)(zod@3.24.2):
     optionalDependencies:
@@ -6874,6 +6879,10 @@ snapshots:
   walker@1.0.8:
     dependencies:
       makeerror: 1.0.12
+
+  web-solc@0.5.1:
+    dependencies:
+      semver: 7.7.1
 
   webidl-conversions@3.0.1: {}
 
