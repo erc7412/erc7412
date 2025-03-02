@@ -2,7 +2,7 @@ import * as mod from './txn'
 
 import * as viem from 'viem'
 
-import IERC7412 from '../out/IERC7412.sol/IERC7412.0.8.27.json'
+import IERC7412 from '../out/IERC7412.sol/IERC7412.json'
 
 import type { OracleAdapter } from './types'
 
