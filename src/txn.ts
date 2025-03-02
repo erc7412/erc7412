@@ -1,6 +1,6 @@
 import { type OracleAdapter, type TransactionRequest } from './types'
 import * as viem from 'viem'
-import IERC7412 from '../out/IERC7412.sol/IERC7412.0.8.27.json'
+import IERC7412 from '../out/IERC7412.sol/IERC7412.json'
 import { parseError } from './parseError'
 
 import Debug from 'debug'
