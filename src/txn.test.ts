@@ -24,7 +24,7 @@ describe('txn.ts', () => {
   let errorCode: viem.Hex = '0x1234'
   beforeEach(() => {
     errorCode = '0x1234'
-    fakeWeb3.request.mockImplementation(async ({ method, params }: { method: string; params: any[] }) => {
+    fakeWeb3.request.mockImplementation(async ({ method, params }: { method: string, params: any[] }) => {
       if (method === 'eth_chainId') {
         return BigInt(1337)
       } else if (method === 'eth_call') {

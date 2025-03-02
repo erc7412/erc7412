@@ -16,7 +16,7 @@ import { getAccount } from './actions-public'
  * Extend your viem client with the object returned by this function to automatically apply erc7412
  * required offchain data to your read calls
  */
-export function createErc7412WalletActions(adapters: OracleAdapter[]) {
+export function createErc7412WalletActions (adapters: OracleAdapter[]) {
   return (client: viem.PublicClient) => {
     const actions = {
       prepareTransactionRequest: async (
@@ -28,13 +28,13 @@ export function createErc7412WalletActions(adapters: OracleAdapter[]) {
       prepareMulticallTransactionRequest: async <T extends unknown[]>(args: {
         txns: viem.PrepareTransactionRequestParameters[]
       }): Promise<viem.PrepareTransactionRequestReturnType> => {
-        let prependedTxns: TransactionRequest<{}[]> = []
+        let prependedTxns: TransactionRequest<Array<{}>> = []
 
         if (args.txns.length < 1) {
           throw new Error('must have at least 1 transaction in multicall')
         }
 
-        const payloadTxns: TransactionRequest<{ data: viem.Hex; to: viem.Address; value: bigint }[]> = args.txns.map((t) => {
+        const payloadTxns: TransactionRequest<Array<{ data: viem.Hex, to: viem.Address, value: bigint }>> = args.txns.map((t) => {
           const req = {
             data: t.data || '0x',
             to: t.to || viem.zeroAddress,
@@ -92,7 +92,6 @@ export function createErc7412WalletActions(adapters: OracleAdapter[]) {
           }
         }
 
-        console.log('execution result', execResult)
         return {
           request: args,
           result: viem.decodeFunctionResult({

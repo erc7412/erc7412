@@ -1,4 +1,4 @@
-import { OracleAdapter, TransactionRequest } from './types'
+import { type OracleAdapter, type TransactionRequest } from './types'
 import * as viem from 'viem'
 import IERC7412 from '../out/IERC7412.sol/IERC7412.0.8.27.json'
 import { parseError } from './parseError'
@@ -11,15 +11,15 @@ export const LEGACY_ODR_ERROR = [
   { type: 'error', name: 'OracleDataRequired', inputs: [{ type: 'address' }, { type: 'bytes' }] }
 ]
 
-export async function resolvePrependTransaction(
+export async function resolvePrependTransaction (
   origError: any,
   provider: Parameters<typeof viem.custom>[0],
   adapters: OracleAdapter[]
-): Promise<TransactionRequest<{ to: viem.Address; data: viem.Hex; value: bigint }[]>> {
+): Promise<TransactionRequest<Array<{ to: viem.Address, data: viem.Hex, value: bigint }>>> {
   const client = viem.createPublicClient({ transport: viem.custom(provider, { retryCount: 0 }) })
   const adapterCalls = resolveAdapterCalls(origError, provider)
 
-  let priceUpdateTxs: TransactionRequest<{ to: viem.Address; data: viem.Hex; value: bigint }[]> = []
+  let priceUpdateTxs: TransactionRequest<Array<{ to: viem.Address, data: viem.Hex, value: bigint }>> = []
   for (const a in adapterCalls) {
     const oracleId = viem.hexToString(
       viem.trim(
@@ -46,7 +46,7 @@ export async function resolvePrependTransaction(
       priceUpdateTxs = [
         ...priceUpdateTxs,
         {
-          //from: getWETHAddress(await client.getChainId()),
+          // from: getWETHAddress(await client.getChainId()),
           to: a as viem.Address,
           value: call.fee || 0n,
           data: viem.encodeFunctionData({
@@ -64,10 +64,10 @@ export async function resolvePrependTransaction(
   return priceUpdateTxs
 }
 
-export function resolveAdapterCalls(
+export function resolveAdapterCalls (
   origError: any,
   provider: Parameters<typeof viem.custom>[0]
-): Record<viem.Address, Array<{ query: viem.Hex; fee: bigint }>> {
+): Record<viem.Address, Array<{ query: viem.Hex, fee: bigint }>> {
   try {
     let err
     try {
@@ -85,7 +85,7 @@ export function resolveAdapterCalls(
     if (err.errorName === 'Errors') {
       const errorsList = err.args?.[0] as viem.Hex[]
 
-      const adapterCalls: Record<viem.Address, Array<{ query: viem.Hex; fee: bigint }>> = {}
+      const adapterCalls: Record<viem.Address, Array<{ query: viem.Hex, fee: bigint }>> = {}
       for (const error of errorsList) {
         const subAdapterCalls = resolveAdapterCalls(error, provider)
 

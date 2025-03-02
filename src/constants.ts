@@ -6,6 +6,6 @@ const WETH_ADDRESS: Record<number, string> = {
   [baseGoerli.id]: '0x4200000000000000000000000000000000000006'
 }
 
-export function getWETHAddress(chainId: number): Address {
+export function getWETHAddress (chainId: number): Address {
   return WETH_ADDRESS[chainId] as Address
 }

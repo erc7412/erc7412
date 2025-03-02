@@ -7,19 +7,19 @@ const debug = Debug('erc7412:oracles:chainlink-datastreams')
 
 export class ChainlinkAdapter implements OracleAdapter {
   private readonly api: ChainlinkDataStreamsConsumer
-  constructor(api: ChainlinkDataStreamsConsumer) {
+  constructor (api: ChainlinkDataStreamsConsumer) {
     this.api = api
   }
 
-  getOracleId(): string {
+  getOracleId (): string {
     return 'CHAINLINK_DATA_STREAMS'
   }
 
-  async fetchOffchainData(
+  async fetchOffchainData (
     _client: viem.Client,
     _oracleContract: viem.Address,
-    oracleQuery: Array<{ query: viem.Hex; fee?: bigint }>
-  ): Promise<Array<{ arg: viem.Hex; fee: bigint }>> {
+    oracleQuery: Array<{ query: viem.Hex, fee?: bigint }>
+  ): Promise<Array<{ arg: viem.Hex, fee: bigint }>> {
     // divide needed update timestamp
     const staleFeedIds: Record<string, viem.Hash[]> = {}
     let totalFee = BigInt(0)

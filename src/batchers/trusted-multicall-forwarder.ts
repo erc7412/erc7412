@@ -8,11 +8,14 @@ const TRUSTED_MULTICALL_FORWARDER_ADDRESS: viem.Address = '0xE2C5658cC5C448B4814
 export class TrustedMulticallForwarderBatcher<T extends unknown[]> implements Batcher<T> {
   isSupported: Map<viem.Address, boolean | undefined>
 
-  constructor() {
+  readonly fromAddress: viem.Address
+
+  constructor (from: viem.Address = viem.zeroAddress) {
     this.isSupported = new Map()
+    this.fromAddress = from
   }
 
-  async batchable(client: viem.PublicClient, _from: viem.Address, transactions: TransactionRequest<T>): Promise<boolean> {
+  async batchable (client: viem.PublicClient, transactions: TransactionRequest<T>): Promise<boolean> {
     for (const transaction of transactions) {
       const toAddress = (transaction as { to: viem.Address }).to ?? viem.zeroAddress // Should this default be set further up, or make sure it's set by now with stricter types?
 
@@ -38,10 +41,7 @@ export class TrustedMulticallForwarderBatcher<T extends unknown[]> implements Ba
     return true
   }
 
-  batch(
-    _from: viem.Address,
-    transactions: TransactionRequest<T>
-  ): TransactionRequest<{ to: viem.Address; data: viem.Hex; value: bigint }[]>[0] {
+  batch (transactions: TransactionRequest<T>): TransactionRequest<Array<{ to: viem.Address, data: viem.Hex, value: bigint }>>[0] {
     const totalValue = transactions.reduce((val: bigint, txn) => {
       return val + ((txn as { value: bigint }).value ?? BigInt(0))
     }, BigInt(0))
@@ -66,7 +66,7 @@ export class TrustedMulticallForwarderBatcher<T extends unknown[]> implements Ba
     }
   }
 
-  async checkSupport(client: viem.PublicClient, address: viem.Address): Promise<boolean> {
+  async checkSupport (client: viem.PublicClient, address: viem.Address): Promise<boolean> {
     const resp = await client.readContract({
       abi: IERC2771Context.abi,
       address,

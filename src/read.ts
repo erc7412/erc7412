@@ -1,22 +1,21 @@
-import { OracleAdapter, TransactionRequest } from './types'
+import { type OracleAdapter, type TransactionRequest } from './types'
 import type { SimulateCallsReturnType } from 'viem/actions'
 import * as viem from 'viem'
 import { resolvePrependTransaction } from './txn'
 
-export async function simulateWithOffchainData<T extends unknown[]>(
+export async function simulateWithOffchainData<T extends unknown[]> (
   provider: Parameters<typeof viem.custom>[0],
   adapters: OracleAdapter[],
   transactions: TransactionRequest<T>,
   from: viem.Address = viem.zeroAddress,
   maxIter = 5
-): Promise<{ results: SimulateCallsReturnType<T[]>['results']; txns: TransactionRequest<any>[] }> {
+): Promise<{ results: SimulateCallsReturnType<T[]>['results'], txns: Array<TransactionRequest<any>> }> {
   const client = viem.createPublicClient({
     transport: viem.custom(provider, { retryCount: 0 })
   })
 
-  let prependedTxns: TransactionRequest<{ to: viem.Address; data: viem.Hex; value: bigint }[]> = []
+  let prependedTxns: TransactionRequest<Array<{ to: viem.Address, data: viem.Hex, value: bigint }>> = []
   for (let i = 0; i < maxIter; i++) {
-      console.log('prepended', prependedTxns);
     const simulatedCalls = await client.simulateCalls<any>({
       account: from,
       calls: [...prependedTxns, ...transactions]
@@ -31,7 +30,7 @@ export async function simulateWithOffchainData<T extends unknown[]>(
       }
     }
 
-    if (!batchNewTxs.length) {
+    if (batchNewTxs.length === 0) {
       return {
         results: simulatedCalls.results.slice(-transactions.length).map((r: any) => r.data) as any,
         txns: [...prependedTxns, ...transactions]

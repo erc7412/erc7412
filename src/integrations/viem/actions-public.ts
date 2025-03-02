@@ -7,7 +7,7 @@ import { createErc7412WalletActions } from './actions-wallet'
 import { simulateWithOffchainData } from '../../read'
 import type { OracleAdapter } from '../../types'
 
-export function getAccount(account: `0x${string}` | viem.Account | undefined): `0x${string}` {
+export function getAccount (account: `0x${string}` | viem.Account | undefined): `0x${string}` {
   if (account === undefined) {
     return viem.zeroAddress
   }
@@ -21,7 +21,7 @@ export function getAccount(account: `0x${string}` | viem.Account | undefined): `
  * Extend your viem client with the object returned by this function to automatically apply erc7412
  * required offchain data to your read calls
  */
-export function createErc7412PublicActions(adapters: OracleAdapter[]) {
+export function createErc7412PublicActions (adapters: OracleAdapter[]) {
   const actionsWallet = createErc7412WalletActions(adapters)
   return (client: viem.PublicClient) => {
     const actions = {
@@ -30,7 +30,7 @@ export function createErc7412PublicActions(adapters: OracleAdapter[]) {
           data: (
             await simulateWithOffchainData(client, adapters, [
               {
-                //from: getAccount(args.account),
+                // from: getAccount(args.account),
                 to: args.to || viem.zeroAddress,
                 data: args.data || '0x',
                 value: args.value || BigInt(0)
@@ -82,7 +82,7 @@ export function createErc7412PublicActions(adapters: OracleAdapter[]) {
           adapters,
           args.contracts.map((c) => {
             return {
-              //from: c.address,
+              // from: c.address,
               data: viem.encodeFunctionData(c),
               to: c.address,
               value: BigInt(0)

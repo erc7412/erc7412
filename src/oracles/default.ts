@@ -3,17 +3,17 @@ import type * as viem from 'viem'
 import fetch from 'node-fetch'
 
 export class DefaultAdapter implements OracleAdapter {
-  constructor(private readonly oracleId: string, private readonly url: string) {}
+  constructor (private readonly oracleId: string, private readonly url: string) {}
 
-  getOracleId(): string {
+  getOracleId (): string {
     return this.oracleId
   }
 
-  async fetchOffchainData(
+  async fetchOffchainData (
     _client: viem.Client,
     _oracleContract: viem.Address,
-    oracleQuery: Array<{ query: viem.Hex; fee?: bigint }>
-  ): Promise<Array<{ arg: viem.Hex; fee: bigint }>> {
+    oracleQuery: Array<{ query: viem.Hex, fee?: bigint }>
+  ): Promise<Array<{ arg: viem.Hex, fee: bigint }>> {
     if (oracleQuery.length > 1) {
       throw new Error('only one query at a time is supported')
     }
@@ -21,7 +21,7 @@ export class DefaultAdapter implements OracleAdapter {
     return [{ arg: await this.fetch(oracleQuery[0].query), fee: oracleQuery[0].fee ?? BigInt(0) }]
   }
 
-  private async fetch(data: viem.Hex): Promise<viem.Hex> {
+  private async fetch (data: viem.Hex): Promise<viem.Hex> {
     const response = await fetch(this.url, {
       method: 'POST',
       headers: {

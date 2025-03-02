@@ -1,6 +1,6 @@
 import * as viem from 'viem'
 
-export function parseError(error: any): viem.Hex {
+export function parseError (error: any): viem.Hex {
   try {
     if (viem.isHex(error)) {
       return error

@@ -5,24 +5,24 @@ import { type Address } from 'viem'
 
 export class PythAdapter implements OracleAdapter {
   private readonly connection: EvmPriceServiceConnection
-  constructor(endpoint: string) {
+  constructor (endpoint: string) {
     this.connection = new EvmPriceServiceConnection(endpoint)
   }
 
-  getOracleId(): string {
+  getOracleId (): string {
     return 'PYTH'
   }
 
-  async fetchOffchainData(
+  async fetchOffchainData (
     _client: viem.Client,
     _oracleContract: viem.Address,
-    oracleQuery: Array<{ query: viem.Hex; fee?: bigint }>
-  ): Promise<Array<{ arg: viem.Hex; fee: bigint }>> {
+    oracleQuery: Array<{ query: viem.Hex, fee?: bigint }>
+  ): Promise<Array<{ arg: viem.Hex, fee: bigint }>> {
     // divide by update type
     const stalePriceIds: viem.Hash[] = []
     let stalenessTolerance: bigint = BigInt(86400)
     let staleUpdateFee: bigint = BigInt(0)
-    const vaaUpdatePrices: Array<{ arg: viem.Hex; fee: bigint }> = []
+    const vaaUpdatePrices: Array<{ arg: viem.Hex, fee: bigint }> = []
     for (const query of oracleQuery) {
       const [updateType] = viem.decodeAbiParameters([{ name: 'updateType', type: 'uint8' }], query.query)
       if (updateType === 1) {

@@ -22,11 +22,10 @@ describe('read.ts', () => {
   let errorCode: viem.Hex = '0x1234'
   beforeEach(() => {
     errorCode = '0x1234'
-    fakeWeb3.request.mockImplementation(async ({ method, params }: { method: string; params: any[] }) => {
+    fakeWeb3.request.mockImplementation(async ({ method, params }: { method: string, params: any[] }) => {
       if (method === 'eth_chainId') {
         return BigInt(1337)
       } else if (method === 'eth_simulateV1') {
-        console.log('block state calls', params[0].blockStateCalls[0])
         if (params[0].blockStateCalls[0].calls[0].data.includes('87651234') === true) {
           return [
             {

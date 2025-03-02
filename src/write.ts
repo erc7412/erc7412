@@ -1,19 +1,20 @@
 import * as viem from 'viem'
-import { type OracleAdapter, type TransactionRequest } from './types'
+import { type Batcher, type OracleAdapter, type TransactionRequest } from './types'
 
 import ITrustedMulticallForwarder from '../out/ITrustedMulticallForwarder.sol/ITrustedMulticallForwarder.json'
 
-const TRUSTED_MULTICALL_FORWARDER_ADDRESS: viem.Address = '0xE2C5658cC5C448B48141168f3e475dF8f65A1e3e'
-
 import { resolvePrependTransaction } from './txn'
+import { simulateWithOffchainData } from './read'
+
+const TRUSTED_MULTICALL_FORWARDER_ADDRESS: viem.Address = '0xE2C5658cC5C448B48141168f3e475dF8f65A1e3e'
 
 export const LEGACY_ODR_ERROR = [
   { type: 'error', name: 'OracleDataRequired', inputs: [{ type: 'address' }, { type: 'bytes' }] }
 ]
 
-export function makeTrustedForwarderMulticall<T extends unknown[]>(
+export function makeTrustedForwarderMulticall<T extends unknown[]> (
   transactions: TransactionRequest<T>
-): TransactionRequest<{ to: viem.Address; value: bigint; data: viem.Hex }[]>[0] {
+): TransactionRequest<Array<{ to: viem.Address, value: bigint, data: viem.Hex }>>[0] {
   const totalValue = transactions.reduce((val: bigint, txn) => {
     return val + ((txn as { value: bigint }).value ?? BigInt(0))
   }, BigInt(0))
@@ -26,7 +27,7 @@ export function makeTrustedForwarderMulticall<T extends unknown[]>(
       functionName: 'aggregate3Value',
       args: [
         transactions.map((txn) => {
-          const castType = txn as { to: viem.Address; data: viem.Hex; value: bigint }
+          const castType = txn as { to: viem.Address, data: viem.Hex, value: bigint }
           return {
             target: castType.to,
             callData: castType.data ?? '0x',
@@ -39,36 +40,15 @@ export function makeTrustedForwarderMulticall<T extends unknown[]>(
   }
 }
 
-export async function buildTransactionWithOffchainData<T extends unknown[]>(
-  transactions: TransactionRequest<T>,
+export async function buildTransactionWithOffchainData<T extends unknown[]> (
   provider: Parameters<typeof viem.custom>[0],
   adapters: OracleAdapter[],
+  transactions: TransactionRequest<T>,
+  batcher: Batcher<T>,
   maxIter = 5
-): Promise<[viem.Hex, ...viem.Hex[]]> {
-  const client = viem.createPublicClient({ transport: viem.custom(provider, { retryCount: 0 }) })
+): Promise<{ to: string, data: string, value: bigint }> {
+  const { txns } = await simulateWithOffchainData(provider, adapters, transactions, batcher.fromAddress, maxIter)
 
-  let prependedTxns: TransactionRequest<{ to: viem.Address; data: viem.Hex }[]> = []
-  for (let i = 0; i < maxIter; i++) {
-    let result
-    try {
-      // TODO: is there any way to avoid any cast here? its interesting because it only becomes a type error if the spread operator is used
-      // when prependedTxns is gone
-      result = await client.call(makeTrustedForwarderMulticall([...prependedTxns, ...(transactions as any)]))
-    } catch (caughtErr) {
-      prependedTxns = [...prependedTxns, ...(await resolvePrependTransaction(caughtErr, client, adapters))]
-      continue
-    }
-    if (result.data === undefined) {
-      throw new Error('missing return data from multicall')
-    }
-
-    const datas: any[] = viem.decodeFunctionResult({
-      abi: ITrustedMulticallForwarder.abi,
-      functionName: 'aggregate3Value',
-      data: result.data
-    }) as any[]
-    return datas.slice(-transactions.length) as any
-  }
-
-  throw new Error('erc7412 callback repeat exceeded')
+  // TODO: types are tough here
+  return batcher.batch(txns as any)
 }

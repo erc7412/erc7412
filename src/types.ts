@@ -8,14 +8,12 @@ export interface OracleAdapter {
   fetchOffchainData: (
     client: Client,
     oracleContract: Address,
-    oracleQuery: Array<{ query: Hex; fee: bigint }>
-  ) => Promise<Array<{ arg: Hex; fee?: bigint }>>
+    oracleQuery: Array<{ query: Hex, fee: bigint }>
+  ) => Promise<Array<{ arg: Hex, fee?: bigint }>>
 }
 
 export interface Batcher<T extends unknown[]> {
-  batchable: (client: PublicClient, from: Address, transactions: TransactionRequest<T>) => Promise<boolean>
-  batch: (
-    from: Address,
-    transactions: TransactionRequest<T>
-  ) => TransactionRequest<{ to: Address; data: Hex; value: bigint }[]>[0]
+  fromAddress: Address
+  batchable: (client: PublicClient, transactions: TransactionRequest<T>) => Promise<boolean>
+  batch: (transactions: TransactionRequest<T>) => TransactionRequest<Array<{ to: Address, data: Hex, value: bigint }>>[0]
 }
