@@ -35,9 +35,13 @@
   "peerDependencies": {
     "@hackbg/chainlink-datastreams-consumer": "*",
     "@pythnetwork/pyth-evm-js": "^1.25.0",
-    "@pythnetwork/pyth-sdk-solidity": "^2.2.1"
+    "@pythnetwork/pyth-sdk-solidity": "^2.2.1",
+    "@redstone-finance/evm-connector": "*",
+    "@redstone-finance/sdk": "*"
   },
   "devDependencies": {
+    "@redstone-finance/evm-connector": "^0.8.0",
+    "@redstone-finance/sdk": "^0.8.0",
     "@types/debug": "^4.1.12",
     "@types/jest": "^29.5.12",
     "@types/node-fetch": "^2.6.4",
