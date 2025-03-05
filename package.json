@@ -8,6 +8,7 @@
     "test": "npx jest --workerThreads",
     "test:e2e:pyth": "node ./test/pyth.mjs",
     "test:e2e:chainlink": "node ./test/chainlink.mjs",
+    "test:e2e:redstone": "node ./test/redstone.mjs",
     "lint:fix": "eslint . --ext .ts --fix"
   },
   "repository": {
