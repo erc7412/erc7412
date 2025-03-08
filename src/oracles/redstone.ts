@@ -11,8 +11,8 @@ export class RedstoneAdapter implements OracleAdapter {
   }
 
   async fetchOffchainData(
-    _client: viem.Client,
-    _requester: viem.Address,
+    client: viem.Client,
+    requester: viem.Address,
     data: Array<{ query: viem.Hex; fee?: bigint }>
   ): Promise<Array<{ arg: viem.Hex; fee: bigint }>> {
     const feedIds: { [serviceId: string]: string[] } = {}
@@ -38,8 +38,13 @@ export class RedstoneAdapter implements OracleAdapter {
         dataPackagesIds: feedIds[serviceId].map(bytes32ToString),
         dataServiceId: serviceId,
         uniqueSignersCount,
-        urls: this.cacheServiceUrls
-      } as any)
+        urls: this.cacheServiceUrls,
+        authorizedSigners: (await client.extend(viem.publicActions).readContract({
+          abi: [{ type: 'function', name: 'getAuthorizedSigners', outputs: [{ type: 'address[]' }] }],
+          address: requester,
+          functionName: 'getAuthorizedSigners'
+        })) as string[]
+      })
 
       const signedRedstonePayload = await new DataPackagesWrapper(dataPackages).prepareRedstonePayload(true)
 

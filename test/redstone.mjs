@@ -6,8 +6,6 @@ import { privateKeyToAccount } from 'viem/accounts'
 import { RedstoneAdapter } from '../dist/src/oracles/redstone.js'
 import { simulateWithOffchainData } from '../dist/src/index.js'
 
-console.log('cannoncli', cannonCli)
-
 const { build, getFoundryArtifact, getProvider, runRpc } = cannonCli
 
 async function generate7412CompatibleCall(
@@ -91,8 +89,6 @@ async function runRedstoneExample() {
     }
   }
 
-    console.log(netInfo.provider);
-
   const walletConfig = {
     chain: {
       nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
@@ -102,7 +98,14 @@ async function runRedstoneExample() {
     transport: viem.custom(netInfo.provider.transport)
   }
 
-  const client = viem.createPublicClient(walletConfig)
+  const client = viem
+    .createPublicClient(walletConfig)
+    .extend(viem.testActions({ mode: 'anvil' }))
+
+  // ensure the timestamp is current
+  await client.setNextBlockTimestamp({
+    timestamp: Math.floor(Date.now() / 1000)
+  })
 
   const walletClient = viem.createWalletClient({
     account: privateKeyToAccount(
@@ -112,18 +115,21 @@ async function runRedstoneExample() {
     chain: walletConfig.chain
   })
 
-  const tx = await generate7412CompatibleCall(
+  const callResult = await generate7412CompatibleCall(
     client,
     makeMulticall,
     redstoneFeedAddress,
     redstoneFeedCallData
   )
+
+  console.log('simulate result', callResult)
+
   console.log('Sending multicall transaction with oracle data')
   const hash = await walletClient.sendTransaction({
     account: senderAddr,
-    to: tx.to,
-    data: tx.data,
-    value: tx.value
+    to: callResult.txns[0].to,
+    data: callResult.txns[0].data,
+    value: callResult.txns[0].value
   })
 
   console.log('Multicall transaction hash: ' + hash)

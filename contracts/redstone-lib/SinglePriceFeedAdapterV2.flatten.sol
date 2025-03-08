@@ -1840,7 +1840,7 @@ abstract contract RedstoneAdapterBase is RedstoneConsumerNumericBase, IRedstoneA
     // "unsafe" here means "without validation"
     uint256 valueForDataFeed = getValueForDataFeedUnsafe(dataFeedId);
 
-    validateDataFeedValue(dataFeedId, valueForDataFeed);
+    //validateDataFeedValue(dataFeedId, valueForDataFeed);
     return valueForDataFeed;
   }
 
