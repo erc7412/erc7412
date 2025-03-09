@@ -28,6 +28,9 @@ export async function simulateWithOffchainData<T extends unknown[]>(
       if (result.status !== 'success') {
         const err = result.data
         const newPrependTxs = await resolvePrependTransaction(err, client, adapters)
+        if (!newPrependTxs.length) {
+          throw new Error('oracle provider returned no offchain data fulfillment transaction')
+        }
         batchNewTxs = [...batchNewTxs, ...newPrependTxs]
       }
     }

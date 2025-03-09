@@ -8,12 +8,7 @@ import { simulateWithOffchainData } from '../dist/src/index.js'
 
 const { build, getFoundryArtifact, getProvider, runRpc } = cannonCli
 
-async function generate7412CompatibleCall(
-  client,
-  multicallFunc,
-  addressToCall,
-  functionName
-) {
+async function generate7412CompatibleCall(client, addressToCall, functionName) {
   const adapters = []
   adapters.push(new RedstoneAdapter())
 
@@ -37,11 +32,8 @@ async function makeTestEnv() {
       name: 'erc7412redstone',
       version: '0.0.1',
       contract: {
-        Multicall: {
-          artifact: 'Multicall3_1'
-        },
-        RedstoneBTCFeed: {
-          artifact: 'RedstoneBTCFeed'
+        ERC7412RedstoneFeed: {
+          artifact: 'ERC7412RedstoneFeed'
         }
       }
     })
@@ -52,42 +44,19 @@ async function makeTestEnv() {
 
 async function runRedstoneExample() {
   const netInfo = await makeTestEnv()
+  console.log('TEST ENV complete')
 
   const senderAddr = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266'
 
-  const redstoneFeedAddress = netInfo.outputs.contracts.RedstoneBTCFeed.address
+  const btcFeedId = viem.toHex('BTC', { size: 32 })
+
+  const redstoneFeedAddress =
+    netInfo.outputs.contracts.ERC7412RedstoneFeed.address
   const redstoneFeedCallData = viem.encodeFunctionData({
-    abi: netInfo.outputs.contracts.RedstoneBTCFeed.abi,
+    abi: netInfo.outputs.contracts.ERC7412RedstoneFeed.abi,
     functionName: 'getLatestValue',
-    args: []
+    args: [btcFeedId, 60]
   })
-
-  function makeMulticall(calls) {
-    const ret = viem.encodeFunctionData({
-      abi: netInfo.outputs.contracts.Multicall.abi,
-      functionName: 'aggregate3Value',
-      args: [
-        calls.map((call) => ({
-          target: call.to,
-          callData: call.data,
-          value: call.value || 0n,
-          allowFailure: false
-        }))
-      ]
-    })
-
-    let totalValue = 0n
-    for (const call of calls) {
-      totalValue += call.value || 0n
-    }
-
-    return {
-      account: senderAddr,
-      to: netInfo.outputs.contracts.Multicall.address,
-      data: ret,
-      value: totalValue.toString()
-    }
-  }
 
   const walletConfig = {
     chain: {
@@ -101,6 +70,14 @@ async function runRedstoneExample() {
   const client = viem
     .createPublicClient(walletConfig)
     .extend(viem.testActions({ mode: 'anvil' }))
+
+  console.log(
+    'CONTRACT ADDR',
+    await client.getCode({
+      address: netInfo.outputs.contracts.ERC7412RedstoneFeed.address
+    }),
+    netInfo.outputs.contracts.ERC7412RedstoneFeed.address
+  )
 
   // ensure the timestamp is current
   await client.setNextBlockTimestamp({
@@ -117,7 +94,6 @@ async function runRedstoneExample() {
 
   const callResult = await generate7412CompatibleCall(
     client,
-    makeMulticall,
     redstoneFeedAddress,
     redstoneFeedCallData
   )
@@ -138,9 +114,9 @@ async function runRedstoneExample() {
   console.log(`Multicall transaction mined gasUsed=${receipt.gasUsed}`)
   const res = await client.readContract({
     address: redstoneFeedAddress,
-    abi: netInfo.outputs.contracts.RedstoneBTCFeed.abi,
+    abi: netInfo.outputs.contracts.ERC7412RedstoneFeed.abi,
     functionName: 'getLatestValue',
-    args: []
+    args: [btcFeedId, 60]
   })
 
   console.log(`Oracle data BTC price: "${res}" is available on chain`)

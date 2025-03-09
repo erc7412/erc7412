@@ -15,13 +15,13 @@ export class RedstoneAdapter implements OracleAdapter {
     requester: viem.Address,
     data: Array<{ query: viem.Hex; fee?: bigint }>
   ): Promise<Array<{ arg: viem.Hex; fee: bigint }>> {
-    const feedIds: { [serviceId: string]: string[] } = {}
+    const feedIds: { [serviceId: string]: viem.Hex[] } = {}
     let uniqueSignersCount = 0
     for (const d of data) {
       const [feedId, singleUniqueSignersCount, dataServiceId] = viem.decodeAbiParameters(
         [{ type: 'bytes32' }, { type: 'uint8' }, { type: 'string' }],
         d.query
-      ) as [string, number, string]
+      ) as [viem.Hex, number, string]
 
       if (!feedIds[dataServiceId]) {
         feedIds[dataServiceId] = []
@@ -40,16 +40,19 @@ export class RedstoneAdapter implements OracleAdapter {
         uniqueSignersCount,
         urls: this.cacheServiceUrls,
         authorizedSigners: (await client.extend(viem.publicActions).readContract({
-          abi: [{ type: 'function', name: 'getAuthorizedSigners', outputs: [{ type: 'address[]' }] }],
+          abi: [{ type: 'function', name: 'getAuthorisedSigners', outputs: [{ type: 'address[]' }] }],
           address: requester,
-          functionName: 'getAuthorizedSigners'
+          functionName: 'getAuthorisedSigners'
         })) as string[]
       })
 
       const signedRedstonePayload = await new DataPackagesWrapper(dataPackages).prepareRedstonePayload(true)
 
       const dataTimestamp = BigInt(chooseDataPackagesTimestamp(dataPackages))
-      const encodedDataTimestamp = viem.encodeAbiParameters([{ type: 'uint256' }], [dataTimestamp])
+      const encodedDataTimestamp = viem.encodeAbiParameters(
+        [{ type: 'bytes32[]' }, { type: 'uint256' }],
+        [feedIds[serviceId], dataTimestamp]
+      )
 
       responses.push({ arg: `${encodedDataTimestamp}${signedRedstonePayload}` as viem.Hex, fee: 0n })
     }

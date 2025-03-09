@@ -14,7 +14,7 @@ const provider = new ethers.providers.JsonRpcProvider(
   const contractData = {
     address:
       process.env.CHAINLINK_DS_ADDRESS ||
-      '0x2A178A3E6E3f99da5516e52B7390750F4E647709',
+      '0x3b5370968d9730f7AF1e87C270fe57BDc7794b7e',
     abi: [
       {
         name: 'getLatestPrice',
@@ -31,7 +31,7 @@ const provider = new ethers.providers.JsonRpcProvider(
   // request price with very strict window to ensure we go through the api
   const data = contract.interface.encodeFunctionData('getLatestPrice', [
     process.env.CHAINLINK_DS_ID ||
-      '0x00037da06d56d083fe599397a4769a042d63aa73dc4ef57709d31e9971a5b439',
+      '0x000359843a543ee2fe414dc14c7e7920ef10f4372990b79d6361cdc0dd1ba782',
     60
   ])
 
@@ -61,5 +61,5 @@ const provider = new ethers.providers.JsonRpcProvider(
     adapters,
     [call]
   )
-  console.log('completed sucessfully', result)
+  console.log('completed sucessfully', result.results)
 })()
