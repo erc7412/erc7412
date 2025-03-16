@@ -28,6 +28,7 @@
   },
   "homepage": "https://github.com/Synthetixio/erc7412#readme",
   "dependencies": {
+    "axios": "^1.8.3",
     "debug": "^4.3.7",
     "node-fetch": "^2.6.12",
     "typechain": "^8.3.1",
@@ -41,6 +42,7 @@
     "@redstone-finance/sdk": "*"
   },
   "devDependencies": {
+    "@hackbg/chainlink-datastreams-consumer": "git+https://github.com/dbeal-eth/chainlink-datastreams-consumer.git",
     "@redstone-finance/evm-connector": "^0.8.0",
     "@redstone-finance/sdk": "^0.8.0",
     "@types/debug": "^4.1.12",
@@ -49,7 +51,7 @@
     "@typescript-eslint/eslint-plugin": "^6.16.0",
     "@usecannon/builder": "^2.21.0",
     "@usecannon/cli": "^2.21.0",
-    "@hackbg/chainlink-datastreams-consumer": "git+https://github.com/dbeal-eth/chainlink-datastreams-consumer.git",
+    "@wormhole-foundation/wormhole-query-sdk": "^0.0.14",
     "eslint": "^8.56.0",
     "eslint-config-standard-with-typescript": "^43.0.0",
     "eslint-plugin-import": "^2.29.1",
