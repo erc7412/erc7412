@@ -86,7 +86,12 @@ const provider = new ethers.providers.JsonRpcProvider(
 
   const adapters = []
 
-  adapters.push(new WormholeAdapter(process.env.WORMHOLE_TOKEN))
+  adapters.push(
+    new WormholeAdapter(
+      process.env.WORMHOLE_TOKEN,
+      'https://testnet.query.wormhole.com/v1/query'
+    )
+  )
 
   const result = await simulateWithOffchainData(
     { request: (r) => provider.send(r.method, r.params) },

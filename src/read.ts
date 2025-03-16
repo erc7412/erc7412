@@ -21,8 +21,6 @@ export async function simulateWithOffchainData<T extends unknown[]>(
       calls: [...prependedTxns, ...transactions]
     })
 
-    console.log('simulated calls result', simulatedCalls)
-
     let batchNewTxs: typeof prependedTxns = []
     for (const result of simulatedCalls.results) {
       if (result.status !== 'success') {

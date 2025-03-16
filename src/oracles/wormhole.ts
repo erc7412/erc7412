@@ -1,8 +1,16 @@
 import * as viem from 'viem'
+import * as viemChains from 'viem/chains'
 import axios from 'axios'
 import { type OracleAdapter } from '../types'
 
-import { EthCallQueryRequest, QueryProxyQueryResponse } from '@wormhole-foundation/wormhole-query-sdk'
+import {
+  EthCallQueryRequest,
+  PerChainQueryRequest,
+  QueryProxyQueryResponse,
+  QueryRequest
+} from '@wormhole-foundation/wormhole-query-sdk'
+
+export const chains: viem.Chain[] = [...Object.values(viemChains)]
 
 export class WormholeAdapter implements OracleAdapter {
   constructor(
@@ -66,14 +74,25 @@ export class WormholeAdapter implements OracleAdapter {
 
     const responses = []
     for (const id in chainRequests) {
-      const req = new EthCallQueryRequest(
-        'latest',
-        chainRequests[id].map((r) => ({
-          to: r.target,
-          data: r.data
-        }))
-      )
+      const latestBlockClient = viem.createPublicClient({
+        chain: viem.extractChain({ chains, id: Number(id) }),
+        transport: viem.http()
+      })
 
+      const latestBlockNumber = Number(await latestBlockClient.getBlockNumber())
+
+      const req = new QueryRequest(0, [
+        new PerChainQueryRequest(
+          2,
+          new EthCallQueryRequest(
+            latestBlockNumber,
+            chainRequests[id].map((r) => ({
+              to: r.target,
+              data: r.data
+            }))
+          )
+        )
+      ])
       const res = await queryWormhole(this.apiUrl, this.apiKey, req)
 
       responses.push({
@@ -89,7 +108,7 @@ export class WormholeAdapter implements OracleAdapter {
   }
 }
 
-async function queryWormhole(apiUrl: string, apiKey: string, request: EthCallQueryRequest) {
+async function queryWormhole(apiUrl: string, apiKey: string, request: QueryRequest) {
   const serialized = request.serialize()
   return (
     await axios.post<QueryProxyQueryResponse>(
