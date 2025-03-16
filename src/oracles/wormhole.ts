@@ -6,28 +6,28 @@ import { type OracleAdapter } from '../types'
 import {
   EthCallQueryRequest,
   PerChainQueryRequest,
-  QueryProxyQueryResponse,
+  type QueryProxyQueryResponse,
   QueryRequest
 } from '@wormhole-foundation/wormhole-query-sdk'
 
 export const chains: viem.Chain[] = [...Object.values(viemChains)]
 
 export class WormholeAdapter implements OracleAdapter {
-  constructor(
+  constructor (
     private readonly apiKey: string,
     private readonly apiUrl: string = 'https://query.wormhole.com/v1/query'
   ) {}
 
-  getOracleId(): string {
+  getOracleId (): string {
     return 'WORMHOLE'
   }
 
-  async fetchOffchainData(
+  async fetchOffchainData (
     client: viem.Client,
     requester: viem.Address,
-    data: Array<{ query: viem.Hex; fee?: bigint }>
-  ): Promise<Array<{ arg: viem.Hex; fee: bigint }>> {
-    const chainRequests: { [chainId: string]: { chainId: bigint; target: string; data: string; asOfTimestamp: bigint }[] } =
+    data: Array<{ query: viem.Hex, fee?: bigint }>
+  ): Promise<Array<{ arg: viem.Hex, fee: bigint }>> {
+    const chainRequests: Record<string, Array<{ chainId: bigint, target: string, data: string, asOfTimestamp: bigint }>> =
       {}
     for (const d of data) {
       const [requests] = viem.decodeAbiParameters(
@@ -99,7 +99,7 @@ export class WormholeAdapter implements OracleAdapter {
         arg: viem.encodeAbiParameters(
           [{ type: 'bytes' }, { type: '(bytes32, bytes32, uint8, uint8)[]' }],
           [res.bytes as viem.Hex, res.signatures]
-        ) as viem.Hex,
+        ),
         fee: 0n
       })
     }
@@ -108,7 +108,7 @@ export class WormholeAdapter implements OracleAdapter {
   }
 }
 
-async function queryWormhole(apiUrl: string, apiKey: string, request: QueryRequest) {
+async function queryWormhole (apiUrl: string, apiKey: string, request: QueryRequest) {
   const serialized = request.serialize()
   return (
     await axios.post<QueryProxyQueryResponse>(

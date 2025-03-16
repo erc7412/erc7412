@@ -1,21 +1,21 @@
 import { DataPackagesWrapper } from '@redstone-finance/evm-connector'
 import * as viem from 'viem'
 import { type OracleAdapter } from '../types'
-import { DataPackagesResponse, requestDataPackages } from '@redstone-finance/sdk'
+import { type DataPackagesResponse, requestDataPackages } from '@redstone-finance/sdk'
 
 export class RedstoneAdapter implements OracleAdapter {
-  constructor(private readonly cacheServiceUrls?: string[]) {}
+  constructor (private readonly cacheServiceUrls?: string[]) {}
 
-  getOracleId(): string {
+  getOracleId (): string {
     return 'REDSTONE'
   }
 
-  async fetchOffchainData(
+  async fetchOffchainData (
     client: viem.Client,
     requester: viem.Address,
-    data: Array<{ query: viem.Hex; fee?: bigint }>
-  ): Promise<Array<{ arg: viem.Hex; fee: bigint }>> {
-    const feedIds: { [serviceId: string]: viem.Hex[] } = {}
+    data: Array<{ query: viem.Hex, fee?: bigint }>
+  ): Promise<Array<{ arg: viem.Hex, fee: bigint }>> {
+    const feedIds: Record<string, viem.Hex[]> = {}
     let uniqueSignersCount = 0
     for (const d of data) {
       const [feedId, singleUniqueSignersCount, dataServiceId] = viem.decodeAbiParameters(

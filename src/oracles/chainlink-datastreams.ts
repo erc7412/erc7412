@@ -5,25 +5,25 @@ import Debug from 'debug'
 
 const debug = Debug('erc7412:oracles:chainlink-datastreams')
 
-async function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms))
+async function sleep (ms: number) {
+  return await new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 export class ChainlinkAdapter implements OracleAdapter {
   private readonly api: ChainlinkDataStreamsConsumer
-  constructor(api: ChainlinkDataStreamsConsumer) {
+  constructor (api: ChainlinkDataStreamsConsumer) {
     this.api = api
   }
 
-  getOracleId(): string {
+  getOracleId (): string {
     return 'CHAINLINK_DATA_STREAMS'
   }
 
-  async fetchOffchainData(
+  async fetchOffchainData (
     _client: viem.Client,
     _oracleContract: viem.Address,
-    oracleQuery: Array<{ query: viem.Hex; fee?: bigint }>
-  ): Promise<Array<{ arg: viem.Hex; fee: bigint }>> {
+    oracleQuery: Array<{ query: viem.Hex, fee?: bigint }>
+  ): Promise<Array<{ arg: viem.Hex, fee: bigint }>> {
     debug('fulfill offchain data', oracleQuery)
     // divide needed update timestamp
     const staleFeedIds: Record<string, viem.Hash[]> = {}
