@@ -1,6 +1,6 @@
 {
   "name": "erc7412",
-  "version": "0.3.0",
+  "version": "1.0.0",
   "description": "Reference implementation for usage of EIP-7412",
   "main": "dist/src/index.js",
   "scripts": {
