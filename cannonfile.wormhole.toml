@@ -1,0 +1,9 @@
+name = "erc7412-wormhole"
+version = "1.0.0"
+
+[var.main]
+verifier_address = ""
+
+[deploy.Oracle]
+artifact = "WormholeERC7412Wrapper"
+args = ["<%= settings.verifier_address %>"]

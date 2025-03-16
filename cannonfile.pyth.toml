@@ -1,0 +1,9 @@
+name = "erc7412-pyth"
+version = "1.0.0"
+
+[var.main]
+verifier_address = ""
+
+[deploy.Oracle]
+artifact = "PythERC7412Wrapper"
+args = ["<%= settings.verifier_address %>"]

@@ -1,0 +1,5 @@
+name = "erc7412-redstone"
+version = "1.0.0"
+
+[deploy.Oracle]
+artifact = "ERC7412RedstoneFeed"

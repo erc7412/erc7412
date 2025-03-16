@@ -55,7 +55,7 @@ importers:
         specifier: ^2.21.0
         version: 2.21.3(typescript@5.7.3)
       '@usecannon/cli':
-        specifier: ^2.21.0
+        specifier: ^2.21.3
         version: 2.21.3(typescript@5.7.3)
       '@wormhole-foundation/wormhole-query-sdk':
         specifier: ^0.0.14
