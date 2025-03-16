@@ -19,18 +19,48 @@ export class WormholeAdapter implements OracleAdapter {
     requester: viem.Address,
     data: Array<{ query: viem.Hex; fee?: bigint }>
   ): Promise<Array<{ arg: viem.Hex; fee: bigint }>> {
-    const chainRequests: { [chainId: string]: [bigint, string, string, bigint][] } = {}
+    const chainRequests: { [chainId: string]: { chainId: bigint; target: string; data: string; asOfTimestamp: bigint }[] } =
+      {}
     for (const d of data) {
       const [requests] = viem.decodeAbiParameters(
-        [{ type: '(uint256 chainId, address target, bytes data, uint256 timestampTag)[]' }],
+        [
+          {
+            name: 'query',
+            type: 'tuple[]',
+            internalType: 'struct WormholeERC7412Wrapper.QueryData',
+            components: [
+              {
+                name: 'chainId',
+                type: 'uint256',
+                internalType: 'uint256'
+              },
+              {
+                name: 'target',
+                type: 'address',
+                internalType: 'address'
+              },
+              {
+                name: 'data',
+                type: 'bytes',
+                internalType: 'bytes'
+              },
+              {
+                name: 'asOfTimestamp',
+                type: 'uint256',
+                internalType: 'uint256'
+              }
+            ]
+          }
+        ],
+
         d.query
-      ) as [[bigint, string, string, bigint][]]
+      )
 
       for (const request of requests) {
-        if (!chainRequests[request[0].toString()]) {
-          chainRequests[request[0].toString()] = []
+        if (!chainRequests[request.chainId.toString()]) {
+          chainRequests[request.chainId.toString()] = []
         }
-        chainRequests[request[0].toString()].push(request)
+        chainRequests[request.chainId.toString()].push(request)
       }
     }
 
@@ -39,8 +69,8 @@ export class WormholeAdapter implements OracleAdapter {
       const req = new EthCallQueryRequest(
         'latest',
         chainRequests[id].map((r) => ({
-          to: r[1],
-          data: r[2]
+          to: r.target,
+          data: r.data
         }))
       )
 
