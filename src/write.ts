@@ -2,8 +2,6 @@ import * as viem from 'viem'
 import { type Batcher, type OracleAdapter, type TransactionRequest } from './types'
 
 import ITrustedMulticallForwarder from '../out/ITrustedMulticallForwarder.sol/ITrustedMulticallForwarder.json'
-
-import { resolvePrependTransaction } from './txn'
 import { simulateWithOffchainData } from './read'
 
 const TRUSTED_MULTICALL_FORWARDER_ADDRESS: viem.Address = '0xE2C5658cC5C448B48141168f3e475dF8f65A1e3e'

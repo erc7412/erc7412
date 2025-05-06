@@ -33,7 +33,7 @@
     "debug": "^4.3.7",
     "node-fetch": "^2.6.12",
     "typechain": "^8.3.1",
-    "viem": "^2.23.2"
+    "viem": "^2.29.0"
   },
   "peerDependencies": {
     "@hackbg/chainlink-datastreams-consumer": "*",
