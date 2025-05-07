@@ -4,5 +4,5 @@ exports[`read.ts simulateWithOffchainData() passes a call execution error if its
 "An unknown RPC error occurred.
 
 Details: 0x08273020
-Version: viem@2.23.2"
+Version: viem@2.29.0"
 `;

@@ -5,6 +5,7 @@ import { prepareTransactionRequest as actionPrepareTransactionRequest } from 'vi
 import { resolvePrependTransaction } from '../../txn'
 import { simulateWithOffchainData } from '../../read'
 import { makeTrustedForwarderMulticall } from '../../write'
+import { createErc7412SendCalls } from './actions-sendCalls'
 
 import ITrustedMulticallForwarder from '../../../out/ITrustedMulticallForwarder.sol/ITrustedMulticallForwarder.json'
 
@@ -17,7 +18,7 @@ import { getAccount } from './actions-public'
  * required offchain data to your read calls
  */
 export function createErc7412WalletActions (adapters: OracleAdapter[]) {
-  return (client: viem.PublicClient) => {
+  return (client: viem.WalletClient) => {
     const actions = {
       prepareTransactionRequest: async (
         args: viem.PrepareTransactionRequestParameters
@@ -108,6 +109,11 @@ export function createErc7412WalletActions (adapters: OracleAdapter[]) {
       // its just supposed to sign and send
     }
 
-    return actions
+    const sendCallsExt = createErc7412SendCalls(adapters)(client);
+
+    return {
+      ...actions,
+      sendCalls: sendCallsExt.sendCalls,
+    }
   }
 }

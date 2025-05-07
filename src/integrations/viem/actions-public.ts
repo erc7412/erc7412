@@ -23,7 +23,7 @@ export function getAccount (account: `0x${string}` | viem.Account | undefined): 
  */
 export function createErc7412PublicActions (adapters: OracleAdapter[]) {
   const actionsWallet = createErc7412WalletActions(adapters)
-  return (client: viem.PublicClient) => {
+  return (client: viem.WalletClient) => {
     const actions = {
       call: async (args: viem.CallParameters): Promise<viem.CallReturnType> => {
         return {

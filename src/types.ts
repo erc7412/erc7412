@@ -1,7 +1,13 @@
+import * as viem from 'viem'
 import type { SimulateCallsParameters } from 'viem/actions'
 import type { PublicClient, Client, Address, Hex } from 'viem'
 
 export type TransactionRequest<T extends unknown[]> = SimulateCallsParameters<T>['calls']
+
+export interface SendCallsWithOffchainDataParameters
+  extends viem.SendCallsParameters {
+  skipOffchainData?: boolean
+}
 
 export interface OracleAdapter {
   getOracleId: () => string
