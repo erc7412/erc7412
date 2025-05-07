@@ -6,7 +6,7 @@ export type TransactionRequest<T extends unknown[]> = SimulateCallsParameters<T>
 
 export interface SendCallsWithOffchainDataParameters
   extends viem.SendCallsParameters {
-  includeOffchainData?: boolean
+  skipOffchainData?: boolean
 }
 
 export interface OracleAdapter {

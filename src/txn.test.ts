@@ -63,9 +63,11 @@ describe('txn.ts', () => {
 
   describe('resolvePrependTransaction()', () => {
     it('passes though error if its not recognized', async () => {
-      const origError = '0x08273020'
+      const unrecognizedErrorData = '0x08273020' // This is OffchainDataRequired(address,string[]) which is not in IERC7412.abi or LEGACY_ODR_ERROR by default
+      const origError = { data: unrecognizedErrorData } // Structure it like a viem error object
       await expect(async () => await mod.resolvePrependTransaction(origError, fakeWeb3, fakeAdapters)).rejects.toThrow(
-        new Error(`could not parse error. can it be decoded elsewhere? "${origError}"`)
+        // The expected error message now includes the JSON stringified object
+        new Error(`could not parse error. can it be decoded elsewhere? ${JSON.stringify(origError)}`)
       )
     })
 

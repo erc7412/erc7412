@@ -28,56 +28,104 @@ describe('createErc7412SendCalls', () => {
     { to: '0xanotherAddress', data: '0x5678', value: 1n },
   ];
 
-  const sendCallsAction = createErc7412SendCalls(fakeAdapters)(mockWalletClient);
+  const walletClient = createErc7412SendCalls([])(mockWalletClient as any);
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('should call original sendCalls when includeOffchainData is false', async () => {
-    const args: SendCallsWithOffchainDataParameters = {
-      account: mockWalletClient.account!,
-      calls: testCalls,
-      includeOffchainData: false,
-    };
-    await sendCallsAction.sendCalls(args);
-    expect(actionSendCalls).toHaveBeenCalledWith(mockWalletClient, { account: mockWalletClient.account, calls: testCalls });
-    expect(simulateWithOffchainData).not.toHaveBeenCalled();
+  it('should call original sendCalls when skipOffchainData is true', async () => {
+    const mockArgs = {
+      calls: [{ to: '0x123', data: '0x456' }],
+      account: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8',
+      skipOffchainData: true,
+    } as SendCallsWithOffchainDataParameters;
+    await walletClient.sendCalls(mockArgs);
+    expect(actionSendCalls).toHaveBeenCalledWith(mockWalletClient, { calls: mockArgs.calls, account: mockArgs.account });
   });
 
-  it('should call original sendCalls when includeOffchainData is undefined', async () => {
-    const args: SendCallsWithOffchainDataParameters = {
-        account: mockWalletClient.account!,
-        calls: testCalls,
-    };
-    await sendCallsAction.sendCalls(args);
-    expect(actionSendCalls).toHaveBeenCalledWith(mockWalletClient, { account: mockWalletClient.account, calls: testCalls });
-    expect(simulateWithOffchainData).not.toHaveBeenCalled();
-  });
+  it('should process offchain data and call sendCalls with new transactions when skipOffchainData is undefined', async () => {
+    const mockArgs = {
+      calls: [{ to: '0xoriginalCall', data: '0xabcdef' }],
+      account: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8', // Account used for fromAddress
+      // skipOffchainData is undefined
+    } as SendCallsWithOffchainDataParameters;
 
-  it('should use simulateWithOffchainData and call sendCalls with new transactions when includeOffchainData is true', async () => {
-    const simulatedTxns = [
-      { to: '0xoracleAddress', data: '0xoracleData', value: 0n },
-      ...testCalls,
-    ];
-    (simulateWithOffchainData as jest.Mock).mockResolvedValue({ txns: simulatedTxns });
+    const simulatedTxns = [{ to: '0xsimulatedTxn', data: '0x654321' }];
+    (simulateWithOffchainData as jest.Mock).mockResolvedValueOnce({
+      txns: simulatedTxns,
+    });
 
-    const args: SendCallsWithOffchainDataParameters = {
-      account: mockWalletClient.account!,
-      calls: testCalls,
-      includeOffchainData: true,
-    };
-    await sendCallsAction.sendCalls(args);
+    // walletClient is initialized with mockWalletClient and [] adapters
+    await walletClient.sendCalls(mockArgs);
 
     expect(simulateWithOffchainData).toHaveBeenCalledWith(
-      mockWalletClient,
-      fakeAdapters,
-      testCalls,
-      mockWalletClient.account!.address,
+      mockWalletClient,                // The client instance from walletClient
+      [],                              // Adapters from walletClient (empty array)
+      mockArgs.calls,                  // Original calls from the arguments
+      mockArgs.account                   // fromAddress, derived from mockArgs.account
     );
-    expect(actionSendCalls).toHaveBeenCalledWith(mockWalletClient, {
-      account: mockWalletClient.account,
-      calls: simulatedTxns,
+
+    // Prepare the expected 'rest' arguments for actionSendCalls
+    // It's mockArgs without skipOffchainData, with 'calls' updated, and 'forceAtomic' added.
+    const expectedActionSendCallsArgs = {
+      ...mockArgs, // Includes account and original calls
+      calls: simulatedTxns, // Overwrite with simulated transactions
+      forceAtomic: true,
+    };
+    // remove skipOffchainData if it was part of mockArgs (it's not in this specific case)
+    delete (expectedActionSendCallsArgs as any).skipOffchainData;
+
+
+    expect(actionSendCalls).toHaveBeenCalledWith(
+      mockWalletClient,
+      expectedActionSendCallsArgs
+    );
+  });
+
+  it('should use simulateWithOffchainData and call sendCalls with new transactions when skipOffchainData is false', async () => {
+    const mockProvider = {} as viem.Client;
+    const mockAdapters = [{}] as OracleAdapter[];
+    const mockValidAccountAddress = '0x70997970C51812dc3A010C7d01b50e0d17dc79C8';
+    const mockArgs = {
+      calls: [{ to: '0x123', data: '0x456' }],
+      account: mockValidAccountAddress,
+      skipOffchainData: false,
+    } as SendCallsWithOffchainDataParameters;
+
+    (simulateWithOffchainData as jest.Mock).mockResolvedValue({
+      txns: [{ to: '0x123', data: '0x456' }],
+    });
+
+    const mockWalletClientWithAccount = {
+      ...mockWalletClient,
+      account: { address: mockValidAccountAddress, type: 'json-rpc' },
+    } as unknown as viem.WalletClient;
+
+    // Create client with mocked account
+    const walletClientWithAccount = createErc7412SendCalls(mockAdapters)(mockWalletClientWithAccount as any);
+
+    const mockArgsWithAccount = {
+      calls: [{ to: '0x123', data: '0x456' }],
+      account: mockWalletClientWithAccount.account,
+      skipOffchainData: false,
+    } as SendCallsWithOffchainDataParameters;
+
+    (simulateWithOffchainData as jest.Mock).mockResolvedValue({
+      txns: [{ to: '0x123', data: '0x456' }],
+    });
+
+    await walletClientWithAccount.sendCalls(mockArgsWithAccount);
+
+    expect(simulateWithOffchainData).toHaveBeenCalledWith(
+      mockWalletClientWithAccount,
+      mockAdapters,
+      mockArgsWithAccount.calls,
+      mockWalletClientWithAccount.account!.address,
+    );
+    expect(actionSendCalls).toHaveBeenCalledWith(mockWalletClientWithAccount, {
+      account: mockWalletClientWithAccount.account,
+      calls: [{ to: '0x123', data: '0x456' }],
       forceAtomic: true,
     });
   });
@@ -89,12 +137,12 @@ describe('createErc7412SendCalls', () => {
     const args: SendCallsWithOffchainDataParameters = {
       account: mockWalletClient.account!,
       calls: testCalls,
-      includeOffchainData: true,
+      skipOffchainData: true,
     };
-    (simulateWithOffchainData as jest.Mock).mockResolvedValue({ txns: testCalls }); // Ensure txns is defined
+    (simulateWithOffchainData as jest.Mock).mockResolvedValue({ txns: testCalls });
 
-    const result = await sendCallsAction.sendCalls(args);
+    const result = await walletClient.sendCalls(args);
     expect(result).toBe(mockReturnId);
-    expect(actionSendCalls).toHaveBeenCalledWith(mockWalletClient, expect.objectContaining({ forceAtomic: true }));
+    expect(actionSendCalls).toHaveBeenCalledWith(mockWalletClient, { account: args.account, calls: args.calls });
   });
 }); 

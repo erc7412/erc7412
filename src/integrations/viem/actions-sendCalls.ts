@@ -9,9 +9,9 @@ export function createErc7412SendCalls(adapters: OracleAdapter[]) {
     async sendCalls(
       args: SendCallsWithOffchainDataParameters,
     ): Promise<viem.SendCallsReturnType> {
-      const { includeOffchainData, ...rest } = args as any;
+      const { skipOffchainData, ...rest } = args as any;
 
-      if (!includeOffchainData) {
+      if (skipOffchainData) {
         // fall back to native behaviour
         return actionSendCalls(client, rest);
       }
