@@ -34,7 +34,7 @@ describe('integrations/viem/actions-wallet', () => {
       }),
       prepareTransactionRequest: jest.fn().mockResolvedValue({}),
       estimateContractGas: jest.fn().mockResolvedValue(12345)
-    } as unknown as PublicClient
+    } as unknown as viem.WalletClient
 
     const actions = mod.createErc7412WalletActions(fakeAdapters)(mockPublicClient)
 
